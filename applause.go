@@ -9,10 +9,15 @@ import (
 	"github.com/noclaps/applause/internal"
 )
 
-func Parse(argStruct any) any {
-	config := make(map[string]internal.Config)
+func Parse(argStruct any) error {
+	rv := reflect.ValueOf(argStruct)
+	if rv.Kind() != reflect.Pointer || rv.IsNil() {
+		return fmt.Errorf("Input value needs to be a pointer")
+	}
 
-	argType := reflect.TypeOf(argStruct)
+	argType := rv.Elem().Type()
+	config := make([]internal.Config, argType.NumField())
+
 	for i := range argType.NumField() {
 		field := argType.Field(i)
 
@@ -24,12 +29,11 @@ func Parse(argStruct any) any {
 		fieldHelp := field.Tag.Get("help")
 		fieldType := field.Tag.Get("type")
 		if fieldType == "" || fieldType == "arg" {
-			config[fieldName] = internal.Arg{Help: fieldHelp}
+			config[i] = internal.Arg{Name: fieldName, Help: fieldHelp}
 		}
 		if fieldType == "option" {
 			fieldShort := field.Tag.Get("short")
-
-			config[fieldName] = internal.Option{Help: fieldHelp, Short: fieldShort}
+			config[i] = internal.Option{Name: fieldName, Help: fieldHelp, Short: fieldShort}
 		}
 	}
 
@@ -41,20 +45,7 @@ func Parse(argStruct any) any {
 			fmt.Fprintln(os.Stderr, internal.GenerateHelp(cmdName, config))
 			os.Exit(0)
 		}
-
-		if arg[0:2] == "--" {
-			eqIndex := strings.Index(arg[2:], "=")
-			argName := arg[2:]
-			if eqIndex != -1 {
-				argName = arg[2:eqIndex]
-			}
-			if _, ok := config[argName]; !ok {
-				fmt.Fprintln(os.Stderr, "Unknown option:", arg)
-			}
-		}
 	}
 
-	fmt.Printf("%#v\n", config)
-
-	return argStruct
+	return nil
 }

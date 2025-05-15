@@ -1,6 +1,11 @@
 package main
 
-import "github.com/noclaps/applause"
+import (
+	"fmt"
+	"os"
+
+	"github.com/noclaps/applause"
+)
 
 type Args struct {
 	name         string `help:"The name of the package"`
@@ -10,5 +15,9 @@ type Args struct {
 }
 
 func main() {
-	applause.Parse(Args{})
+	args := Args{}
+	err := applause.Parse(&args)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
 }
