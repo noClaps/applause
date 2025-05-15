@@ -16,8 +16,7 @@ type Args struct {
 
 func main() {
 	args := Args{}
-	err := applause.Parse(&args)
-	if err != nil {
+	if err := applause.Parse(&args); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
 }
