@@ -2,67 +2,76 @@ package internal
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
-func GenerateHelp(argname string, conf []Config) string {
-	argsList := ""
-	optionsList := ""
-	maxLen := 10 // Minimum 10 because of `-h, --help`
-	for _, c := range conf {
-		if _, ok := c.(Arg); ok {
-			c := c.(Arg)
-			argsList += fmt.Sprintf("<%s> ", c.Name)
-			if len(c.Name) > maxLen {
-				maxLen = len(c.Name)
-			}
-			continue
-		}
-		if o, ok := c.(Option); ok {
-			c := c.(Option)
-			optionsList += fmt.Sprintf("[--%s] ", c.Name)
-			if len(c.Name)+2 > maxLen {
-				maxLen = len(c.Name) + 2
-			}
-			if o.Short != "" {
-				maxLen += 4
-			}
-			continue
-		}
+func generateHelp(argsConfig []arg, optionsConfig []option) string {
+	maxLen := 10 // length of `-h, --help`
+	for _, arg := range argsConfig {
+		maxLen = max(len(arg.Name)+2, maxLen) // add 2 for `<>`
 	}
-	argsList = strings.TrimSpace(argsList)
-	optionsList = strings.TrimSpace(optionsList)
-
-	argsHelp := ""
-	optionsHelp := ""
-	for _, c := range conf {
-		if a, ok := c.(Arg); ok {
-			c := c.(Arg)
-			if argsHelp == "" {
-				argsHelp = "\nARGUMENTS:\n"
-			}
-			argsHelp += fmt.Sprintf("  %s        %s\n", c.Name+strings.Repeat(" ", maxLen-len(c.Name)), a.Help)
-			continue
+	for _, option := range optionsConfig {
+		optLen := len(option.Name) + 2 // add 2 for `--`
+		if option.Value != "" {
+			optLen += len(option.Value) + 3 // add 3 for ` <>`
 		}
-		if o, ok := c.(Option); ok {
-			c := c.(Option)
-			if optionsHelp == "" {
-				optionsHelp = "\nOPTIONS:\n"
-			}
-			blankSpace := strings.Repeat(" ", maxLen-len(c.Name)-2) // account for `--`
-			shortString := ""
-			if o.Short != "" {
-				shortString = fmt.Sprintf("-%s, ", o.Short)
-				blankSpace = strings.Repeat(" ", maxLen-len(c.Name)-6) // account for `--` and `-c, `
-			}
-			optionsHelp += fmt.Sprintf("  %s--%s%s        %s\n", shortString, c.Name, blankSpace, o.Help)
-			continue
+		if option.Short != "" {
+			optLen += len(option.Short) + 3 // add 3 for `-, `
 		}
+		maxLen = max(optLen, maxLen)
 	}
-	optionsHelp += fmt.Sprintf("  -h, --help%s        Display this help and exit.\n", strings.Repeat(" ", maxLen-10))
+	arguments := ""
+	for _, arg := range argsConfig {
+		if arguments == "" {
+			arguments = "\nARGUMENTS:\n"
+		}
+		arguments += fmt.Sprintf(
+			"  <%s>%s        %s\n",
+			arg.Name, strings.Repeat(" ", maxLen-len(arg.Name)-2), arg.Help,
+		)
+	}
+	arguments = strings.TrimSpace(arguments)
 
-	return strings.TrimSpace(fmt.Sprintf(`
-USAGE:
-  %s %s %s%s%s
-`, argname, argsList, optionsList, argsHelp, optionsHelp))
+	options := "OPTIONS:\n"
+	for _, opt := range optionsConfig {
+		optLen := len(opt.Name) + 2 // add `--`
+		short := ""
+		if opt.Short != "" {
+			short = fmt.Sprintf("-%s, ", opt.Short)
+			optLen += len(opt.Short) + 3 // add `-, `
+		}
+		value := ""
+		if opt.Value != "" {
+			value = fmt.Sprintf(" <%s>", opt.Value)
+			optLen += len(opt.Value) + 3 // add ` <>`
+		}
+		options += fmt.Sprintf(
+			"  %s--%s%s%s        %s\n",
+			short, opt.Name, value, strings.Repeat(" ", maxLen-optLen), opt.Help,
+		)
+	}
+	options += fmt.Sprintf("  -h, --help%s        Display this help and exit.", strings.Repeat(" ", maxLen-10))
+	options = strings.TrimSpace(options)
+
+	help := fmt.Sprintf("%s\n\n%s\n\n%s", generateUsage(argsConfig, optionsConfig), arguments, options)
+	return strings.TrimSpace(help)
+}
+
+func generateUsage(argsConfig []arg, optionsConfig []option) string {
+	cmdName := os.Args[0]
+	arguments := ""
+	for _, arg := range argsConfig {
+		arguments += fmt.Sprintf("<%s> ", arg.Name)
+	}
+	options := ""
+	for _, option := range optionsConfig {
+		optionHelp := fmt.Sprintf("[--%s", option.Name)
+		if option.Value != "" {
+			optionHelp += fmt.Sprintf(" <%s>", option.Value)
+		}
+		optionHelp += "] "
+		options += optionHelp
+	}
+	return fmt.Sprintf("USAGE: %s %s %s", cmdName, strings.TrimSpace(arguments), strings.TrimSpace(options))
 }

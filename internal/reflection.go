@@ -1,0 +1,45 @@
+package internal
+
+import (
+	"fmt"
+	"reflect"
+	"strings"
+)
+
+func HandleReflection(argStruct reflect.Type) ([]arg, []option, error) {
+	argsConf := []arg{}
+	optionsConf := []option{}
+	for i := range argStruct.NumField() {
+		field := argStruct.Field(i)
+
+		fieldName := strings.ToLower(field.Name)
+		if name := field.Tag.Get("name"); name != "" {
+			fieldName = name
+		}
+		if field.Tag.Get("type") == "" || field.Tag.Get("type") == "arg" {
+			argsConf = append(argsConf, arg{
+				Name: fieldName,
+				Type: field.Type.Kind().String(),
+				Help: field.Tag.Get("help"),
+			})
+		}
+		if field.Tag.Get("type") == "option" {
+			if field.Name == "help" {
+				return nil, nil, fmt.Errorf("Error in field `%s`: Field name cannot be `help` as this is reserved for the `--help` option.", field.Name)
+			}
+			if field.Tag.Get("short") == "h" {
+				return nil, nil, fmt.Errorf("Error in field `%s`: Field short cannot be `h` as this is reserved for the `--help` option.", field.Name)
+			}
+
+			optionsConf = append(optionsConf, option{
+				Name:  fieldName,
+				Type:  field.Type.Kind().String(),
+				Value: field.Tag.Get("value"),
+				Help:  field.Tag.Get("help"),
+				Short: field.Tag.Get("short"),
+			})
+		}
+	}
+
+	return argsConf, optionsConf, nil
+}

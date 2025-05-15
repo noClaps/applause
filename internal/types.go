@@ -1,15 +1,15 @@
 package internal
 
-type Config any
-
-type Arg struct {
+type arg struct {
 	Name string
+	Type string
 	Help string
 }
 
-type Option struct {
+type option struct {
 	Name  string
-	Value any
+	Type  string
+	Value string
 	Help  string
 	Short string
 }

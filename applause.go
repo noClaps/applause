@@ -2,50 +2,54 @@ package applause
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"strings"
 
 	"github.com/noclaps/applause/internal"
 )
 
-func Parse(argStruct any) error {
-	rv := reflect.ValueOf(argStruct)
+// The input is a pointer to the args struct. Each field in the args struct
+// should have some tags:
+//
+// - `name`: The name of the argument or option. If omitted, the default is the
+// field name in lowercase. If you'd like to have an option have a kebab-cased
+// name, you can write it as `name:"option-name"` in the tags.
+//
+// - `type`: The type can be "arg" or "option". If omitted, the default is
+// "arg". If any other type is provided, the field is ignored.
+//
+// - `help`: The help text for the argument or option, will be displayed in the
+// command help when the command is called with `--help` or `-h`.
+//
+// - `short`: Only applicable when `type` is "option". The short form of the
+// option. For instance, if you have a field with the tag
+// `name:"option" short:"o"`, you can call the command with `--option` or `-o`.
+//
+// - `value`: Only applicable when `type` is "option". The name of the option
+// value to be displayed in the help text. For instance,
+// `name:"option" value:"val"` will be displayed as `--option <val>` in the
+// help text.
+func Parse(args any) error {
+	rv := reflect.ValueOf(args)
 	if rv.Kind() != reflect.Pointer || rv.IsNil() {
-		return fmt.Errorf("Input value needs to be a pointer")
+		return fmt.Errorf("Input value should be a pointer to a struct, received: %v", rv.Kind().String())
 	}
-
-	argType := rv.Elem().Type()
-	config := make([]internal.Config, argType.NumField())
-
-	for i := range argType.NumField() {
-		field := argType.Field(i)
-
-		fieldName := field.Tag.Get("name")
-		if fieldName == "" {
-			fieldName = strings.ToLower(field.Name)
-		}
-
-		fieldHelp := field.Tag.Get("help")
-		fieldType := field.Tag.Get("type")
-		if fieldType == "" || fieldType == "arg" {
-			config[i] = internal.Arg{Name: fieldName, Help: fieldHelp}
-		}
-		if fieldType == "option" {
-			fieldShort := field.Tag.Get("short")
-			config[i] = internal.Option{Name: fieldName, Help: fieldHelp, Short: fieldShort}
+	argStruct := rv.Elem().Type()
+	parsedVals, err := internal.Parse(argStruct)
+	if err != nil {
+		return err
+	}
+	for k, v := range parsedVals {
+		for f := range rv.Elem().NumField() {
+			field := rv.Elem().Type().Field(f)
+			fieldName := strings.ToLower(field.Name)
+			if fn, ok := field.Tag.Lookup("name"); ok {
+				fieldName = fn
+			}
+			if k == fieldName {
+				rv.Elem().Field(f).Set(reflect.ValueOf(v))
+			}
 		}
 	}
-
-	args := os.Args[1:]
-	cmdName := os.Args[0]
-
-	for _, arg := range args {
-		if arg == "--help" || arg == "-h" {
-			fmt.Fprintln(os.Stderr, internal.GenerateHelp(cmdName, config))
-			os.Exit(0)
-		}
-	}
-
 	return nil
 }
