@@ -8,7 +8,7 @@ import (
 func GenerateHelp(argname string, conf []Config) string {
 	argsList := ""
 	optionsList := ""
-	maxLen := 0
+	maxLen := 10 // Minimum 10 because of `-h, --help`
 	for _, c := range conf {
 		if _, ok := c.(Arg); ok {
 			c := c.(Arg)
@@ -59,7 +59,7 @@ func GenerateHelp(argname string, conf []Config) string {
 			continue
 		}
 	}
-	optionsHelp += fmt.Sprintf("  %s--%s%s        %s\n", "-h, ", "help", strings.Repeat(" ", maxLen-10), "Display this help and exit.")
+	optionsHelp += fmt.Sprintf("  -h, --help%s        Display this help and exit.\n", strings.Repeat(" ", maxLen-10))
 
 	return strings.TrimSpace(fmt.Sprintf(`
 USAGE:
