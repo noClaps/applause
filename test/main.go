@@ -2,24 +2,23 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
 
 	"github.com/noclaps/applause"
 )
 
 type Args struct {
-	Name         string `help:"The name of the package"`
-	SkipPeer     bool   `type:"option" name:"skip-peer" help:"Skip counting peer dependencies" short:"p"`
-	SkipOptional bool   `type:"option" name:"skip-optional" help:"Skip counting optional dependencies" short:"o"`
-	Version      string `type:"option" help:"The version of the package being fetched" value:"version"`
+	MyArg  string `name:"my-arg" help:"This is the help text for my-arg"`
+	MyArg2 string `name:"my-arg-2" help:"This is the help text for my-arg-2"`
+	Opt1   int    `type:"option" name:"opt-1" short:"o" value:"option" help:"This is the help text for opt-1"`
+	Opt2   bool   `type:"option" name:"opt-2" short:"p" help:"This is the help text for opt-2"`
 }
 
 func main() {
 	args := Args{}
 	if err := applause.Parse(&args); err != nil {
-		fmt.Fprintln(os.Stderr, "ERROR:", err)
-		os.Exit(1)
+		fmt.Println(err)
+		return
 	}
-	log.Printf("%#v", args)
+
+	fmt.Printf("MyArg: %s, MyArg2: %s, Opt1: %d, Opt2: %v\n", args.MyArg, args.MyArg2, args.Opt1, args.Opt2)
 }
