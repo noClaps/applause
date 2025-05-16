@@ -25,10 +25,10 @@ import (
 // option. For instance, if you have a field with the tag
 // `name:"option" short:"o"`, you can call the command with `--option` or `-o`.
 //
-// - `value`: Only applicable when `type` is "option". The name of the option
-// value to be displayed in the help text. For instance,
-// `name:"option" value:"val"` will be displayed as `--option <val>` in the
-// help text.
+// - `value`: Only applicable when `type` is "option" and the field type is not
+// "bool". The name of the option value to be displayed in the help text. For
+// instance, `name:"option" value:"val"` will be displayed as `--option <val>`
+// in the help text.
 func Parse(args any) error {
 	rv := reflect.ValueOf(args)
 	if rv.Kind() != reflect.Pointer || rv.IsNil() {
