@@ -30,11 +30,18 @@ func HandleReflection(argStruct reflect.Type) ([]arg, []option, error) {
 			if field.Tag.Get("short") == "h" {
 				return nil, nil, fmt.Errorf("Error in field `%s`: Field short cannot be `h` as this is reserved for the `--help` option.", field.Name)
 			}
+			fieldValue := strings.ToLower(field.Name)
+			if v, ok := field.Tag.Lookup("value"); ok {
+				fieldValue = v
+			}
+			if field.Type.Kind().String() == "bool" {
+				fieldValue = ""
+			}
 
 			optionsConf = append(optionsConf, option{
 				Name:  fieldName,
 				Type:  field.Type.Kind().String(),
-				Value: field.Tag.Get("value"),
+				Value: fieldValue,
 				Help:  field.Tag.Get("help"),
 				Short: field.Tag.Get("short"),
 			})
