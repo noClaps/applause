@@ -22,6 +22,7 @@ func Parse(argStruct reflect.Type) (map[string]any, error) {
 		os.Exit(0)
 	}
 
+	currentArgCounter := 0
 	for len(cmdArgs) > 0 {
 		arg := cmdArgs[0]
 
@@ -106,16 +107,12 @@ func Parse(argStruct reflect.Type) (map[string]any, error) {
 			continue
 		}
 
-		if len(cmdArgs) > len(argsConfig) {
-			logError(fmt.Errorf("Extra argument: `%s`", cmdArgs[len(argsConfig)]))
+		if currentArgCounter == len(argsConfig) {
+			logError(fmt.Errorf("Extra argument: `%s`", arg))
 			printUsage(argsConfig, optionsConfig)
 			os.Exit(1)
 		}
-		if len(cmdArgs) < len(argsConfig) {
-			logError(fmt.Errorf("Not enough arguments provided."))
-			printUsage(argsConfig, optionsConfig)
-		}
-		currentArg := argsConfig[0]
+		currentArg := argsConfig[currentArgCounter]
 		name := currentArg.Name
 		val, err := valFromString(arg, currentArg.Type)
 		if err != nil {
@@ -123,7 +120,11 @@ func Parse(argStruct reflect.Type) (map[string]any, error) {
 		}
 		parsedVals[name] = val
 		cmdArgs = slices.Delete(cmdArgs, 0, 1)
-		argsConfig = slices.Delete(argsConfig, 0, 1)
+		currentArgCounter++
+	}
+	if currentArgCounter < len(argsConfig) {
+		logError(fmt.Errorf("Not enough arguments provided."))
+		printUsage(argsConfig, optionsConfig)
 	}
 
 	return parsedVals, nil
