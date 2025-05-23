@@ -64,7 +64,7 @@ The values parsed from the command line arguments are put back into the `args` s
 
 ## Configuration
 
-The configuration struct should have fields with types and some struct tags.
+The configuration struct should have fields with types and some struct tags. All fields you'd like to be parsed should be exported in the struct.
 
 The supported types for fields are:
 

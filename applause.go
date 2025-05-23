@@ -28,6 +28,8 @@ import (
 // "bool". The name of the option value to be displayed in the help text. For
 // instance, `name:"option" value:"val"` will be displayed as `--option <val>`
 // in the help text.
+//
+// All fields that you'd like to be parsed should be exported in the struct.
 func Parse(args any) error {
 	rv := reflect.ValueOf(args)
 	if rv.Kind() != reflect.Pointer || rv.IsNil() {

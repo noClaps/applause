@@ -11,6 +11,9 @@ func HandleReflection(argStruct reflect.Type) ([]arg, []option, error) {
 	optionsConf := []option{}
 	for i := range argStruct.NumField() {
 		field := argStruct.Field(i)
+		if !field.IsExported() {
+			continue
+		}
 
 		fieldName := PascalToKebabCase(field.Name)
 		if name := field.Tag.Get("name"); name != "" {
