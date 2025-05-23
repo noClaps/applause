@@ -6,11 +6,11 @@ import (
 	"strings"
 )
 
-func HandleReflection(argStruct reflect.Type) ([]arg, []option, error) {
+func HandleReflection(argStructType reflect.Type, argStructVal reflect.Value) ([]arg, []option, error) {
 	argsConf := []arg{}
 	optionsConf := []option{}
-	for i := range argStruct.NumField() {
-		field := argStruct.Field(i)
+	for i := range argStructType.NumField() {
+		field := argStructType.Field(i)
 		if !field.IsExported() {
 			continue
 		}
@@ -40,13 +40,19 @@ func HandleReflection(argStruct reflect.Type) ([]arg, []option, error) {
 			if field.Type.Kind().String() == "bool" {
 				fieldValue = ""
 			}
+			fieldVal := argStructVal.Field(i)
+			defaultVal := ""
+			if !fieldVal.IsZero() {
+				defaultVal = fmt.Sprint(fieldVal)
+			}
 
 			optionsConf = append(optionsConf, option{
-				Name:  fieldName,
-				Type:  field.Type.Kind().String(),
-				Value: fieldValue,
-				Help:  field.Tag.Get("help"),
-				Short: field.Tag.Get("short"),
+				Name:    fieldName,
+				Type:    field.Type.Kind().String(),
+				Value:   fieldValue,
+				Help:    field.Tag.Get("help"),
+				Short:   field.Tag.Get("short"),
+				Default: defaultVal,
 			})
 		}
 	}

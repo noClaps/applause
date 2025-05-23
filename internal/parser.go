@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-func Parse(argStruct reflect.Type) (map[string]any, error) {
-	argsConfig, optionsConfig, err := HandleReflection(argStruct)
+func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]any, error) {
+	argsConfig, optionsConfig, err := HandleReflection(argStructType, argStructVal)
 	if err != nil {
 		return nil, err
 	}

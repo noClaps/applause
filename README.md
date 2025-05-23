@@ -124,3 +124,44 @@ Each field should have some struct tags:
     Flag bool `type:"option" value:"my-flag"` // --flag, value is not applicable when the field type is "bool"
   }
   ```
+
+### Default options
+
+You can also set default values for options and they will appear in the help menu. For example, if you have:
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/noclaps/applause"
+)
+
+type Args struct {
+	MyArg  string `help:"This is the help text for my-arg"`
+	MyArg2 string `help:"This is the help text for my-arg-2"`
+	Opt1   int    `type:"option" short:"o" value:"option" help:"This is the help text for opt-1"`
+	Opt2   bool   `type:"option" short:"p" help:"This is the help text for opt-2"`
+}
+
+func main() {
+	args := Args{Opt1: 5}
+	applause.Parse(&args)
+}
+```
+
+and you run `./program --help`, you'll see:
+
+```
+USAGE: ./program <my-arg> <my-arg-2> [--opt-1 <option>] [--opt-2]
+
+ARGUMENTS:
+  <my-arg>                    This is the help text for my-arg
+  <my-arg-2>                  This is the help text for my-arg-2
+
+OPTIONS:
+  -o, --opt-1 <option>        This is the help text for opt-1 (default: 5)
+  -p, --opt-2                 This is the help text for opt-2
+  -h, --help                  Display this help and exit.
+```

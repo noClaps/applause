@@ -36,7 +36,7 @@ func Parse(args any) error {
 		return fmt.Errorf("Input value should be a pointer to a struct, received: %v", rv.Kind().String())
 	}
 	argStruct := rv.Elem().Type()
-	parsedVals, err := internal.Parse(argStruct)
+	parsedVals, err := internal.Parse(argStruct, rv.Elem())
 	if err != nil {
 		return err
 	}

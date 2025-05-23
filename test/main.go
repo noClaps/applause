@@ -14,7 +14,7 @@ type Args struct {
 }
 
 func main() {
-	args := Args{}
+	args := Args{MyArg: "test-val", Opt1: 5}
 	if err := applause.Parse(&args); err != nil {
 		fmt.Println(err)
 		return

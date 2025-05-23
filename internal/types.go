@@ -7,9 +7,10 @@ type arg struct {
 }
 
 type option struct {
-	Name  string
-	Type  string
-	Value string
-	Help  string
-	Short string
+	Name    string
+	Type    string
+	Value   string
+	Help    string
+	Short   string
+	Default string
 }

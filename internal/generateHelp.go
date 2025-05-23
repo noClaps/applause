@@ -46,9 +46,13 @@ func generateHelp(argsConfig []arg, optionsConfig []option) string {
 			value = fmt.Sprintf(" <%s>", opt.Value)
 			optLen += len(opt.Value) + 3 // add ` <>`
 		}
+		defaultStr := ""
+		if opt.Default != "" {
+			defaultStr = fmt.Sprintf(" (default: %s)", opt.Default)
+		}
 		options += fmt.Sprintf(
-			"  %s--%s%s%s        %s\n",
-			short, opt.Name, value, strings.Repeat(" ", maxLen-optLen), opt.Help,
+			"  %s--%s%s%s        %s%s\n",
+			short, opt.Name, value, strings.Repeat(" ", maxLen-optLen), opt.Help, defaultStr,
 		)
 	}
 	options += fmt.Sprintf("  -h, --help%s        Display this help and exit.", strings.Repeat(" ", maxLen-10))
