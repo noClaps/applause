@@ -12,7 +12,7 @@ func HandleReflection(argStruct reflect.Type) ([]arg, []option, error) {
 	for i := range argStruct.NumField() {
 		field := argStruct.Field(i)
 
-		fieldName := strings.ToLower(field.Name)
+		fieldName := pascalToKebabCase(field.Name)
 		if name := field.Tag.Get("name"); name != "" {
 			fieldName = name
 		}
@@ -30,7 +30,7 @@ func HandleReflection(argStruct reflect.Type) ([]arg, []option, error) {
 			if field.Tag.Get("short") == "h" {
 				return nil, nil, fmt.Errorf("Error in field `%s`: Field short cannot be `h` as this is reserved for the `--help` option.", field.Name)
 			}
-			fieldValue := strings.ToLower(field.Name)
+			fieldValue := pascalToKebabCase(field.Name)
 			if v, ok := field.Tag.Lookup("value"); ok {
 				fieldValue = v
 			}
@@ -49,4 +49,15 @@ func HandleReflection(argStruct reflect.Type) ([]arg, []option, error) {
 	}
 
 	return argsConf, optionsConf, nil
+}
+
+func pascalToKebabCase(pascal string) string {
+	kebab := strings.ToLower(pascal[0:1])
+	for _, c := range pascal[1:] {
+		if strings.ToUpper(string(c)) == string(c) {
+			kebab += "-"
+		}
+		kebab += strings.ToLower(string(c))
+	}
+	return kebab
 }

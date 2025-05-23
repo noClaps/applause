@@ -22,10 +22,10 @@ import (
 )
 
 type Args struct {
-	MyArg  string `name:"my-arg" help:"This is the help text for my-arg"`
-	MyArg2 string `name:"my-arg-2" help:"This is the help text for my-arg-2"`
-	Opt1   int    `type:"option" name:"opt-1" short:"o" value:"option" help:"This is the help text for opt-1"`
-	Opt2   bool   `type:"option" name:"opt-2" short:"p" help:"This is the help text for opt-2"`
+	MyArg  string `help:"This is the help text for my-arg"`
+	MyArg2 string `help:"This is the help text for my-arg-2"`
+	Opt1   int    `type:"option" short:"o" value:"option" help:"This is the help text for opt-1"`
+	Opt2   bool   `type:"option" short:"p" help:"This is the help text for opt-2"`
 }
 
 func main() {
@@ -87,7 +87,7 @@ Each field should have some struct tags:
   }
   ```
 
-- `name`: The name of the argument or option. If omitted, the default is the field name in lowercase. If you'd like to have an option have a kebab-cased name, you can write it as `name:"option-name"` in the tags. Example:
+- `name`: The name of the argument or option. If omitted, the default is the field name converted to kebab case. If you'd like to have an option have a different name, you can write it as `name:"option-name"` in the tags. Example:
 
   ```go
   type Args struct {
