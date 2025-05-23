@@ -3,7 +3,6 @@ package applause
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/noclaps/applause/internal"
 )
@@ -42,7 +41,7 @@ func Parse(args any) error {
 	for k, v := range parsedVals {
 		for f := range rv.Elem().NumField() {
 			field := rv.Elem().Type().Field(f)
-			fieldName := strings.ToLower(field.Name)
+			fieldName := internal.PascalToKebabCase(field.Name)
 			if fn, ok := field.Tag.Lookup("name"); ok {
 				fieldName = fn
 			}
