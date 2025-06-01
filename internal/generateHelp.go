@@ -29,9 +29,26 @@ func generateHelp(argsConfig []arg, optionsConfig []option) string {
 		if arguments == "" {
 			arguments = "\nARGUMENTS:\n"
 		}
+		help := arg.Help
+		if len(arg.Help) > 80 {
+			help = ""
+			words := strings.Split(arg.Help, " ")
+			spaceLen := 10 + maxLen // 2 for starting spaces + 8 for middle spaces
+			i := 0
+			for i < len(words) {
+				line := ""
+				for i < len(words) && len(line+words[i]) < 80 {
+					line += words[i] + " "
+					i++
+				}
+				line += "\n" + strings.Repeat(" ", spaceLen)
+				help += line
+			}
+			help = strings.TrimSpace(help)
+		}
 		arguments += fmt.Sprintf(
 			"  <%s>%s        %s\n",
-			arg.Name, strings.Repeat(" ", maxLen-len(arg.Name)-2), arg.Help,
+			arg.Name, strings.Repeat(" ", maxLen-len(arg.Name)-2), help,
 		)
 	}
 	arguments = strings.TrimSpace(arguments)
@@ -64,9 +81,26 @@ func generateHelp(argsConfig []arg, optionsConfig []option) string {
 		if opt.Default != "" {
 			defaultStr = fmt.Sprintf(" (default: %s)", opt.Default)
 		}
+		help := opt.Help
+		if len(opt.Help) > 80 {
+			help = ""
+			words := strings.Split(opt.Help, " ")
+			spaceLen := 10 + maxLen // 2 for starting spaces + 8 for middle spaces
+			i := 0
+			for i < len(words) {
+				line := ""
+				for i < len(words) && len(line+words[i]) < 80 {
+					line += words[i] + " "
+					i++
+				}
+				line += "\n" + strings.Repeat(" ", spaceLen)
+				help += line
+			}
+			help = strings.TrimSpace(help)
+		}
 		options += fmt.Sprintf(
 			"  %s%s%s%s        %s%s\n",
-			short, name, value, strings.Repeat(" ", maxLen-optLen), opt.Help, defaultStr,
+			short, name, value, strings.Repeat(" ", maxLen-optLen), help, defaultStr,
 		)
 	}
 	options += fmt.Sprintf("  -h, --help%s        Display this help and exit.", strings.Repeat(" ", maxLen-10))
