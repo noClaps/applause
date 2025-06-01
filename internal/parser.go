@@ -90,7 +90,6 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 			currentArg := argsConfig[currentArgCounter]
 			name := currentArg.Name
 			scanner := bufio.NewScanner(os.Stdin)
-			fmt.Printf("%s: ", name)
 			scanner.Scan()
 			stdinVal := scanner.Text()
 			val, err := valFromString(stdinVal, currentArg.Type)
