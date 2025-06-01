@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"reflect"
@@ -85,6 +86,23 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 			}
 			parsedVals[key] = parsedVal
 			cmdArgs = slices.Delete(cmdArgs, 0, 2)
+			continue
+		}
+
+		if arg == "-" {
+			currentArg := argsConfig[currentArgCounter]
+			name := currentArg.Name
+			scanner := bufio.NewScanner(os.Stdin)
+			fmt.Printf("%s: ", name)
+			scanner.Scan()
+			stdinVal := scanner.Text()
+			val, err := valFromString(stdinVal, currentArg.Type)
+			if err != nil {
+				return nil, err
+			}
+			parsedVals[name] = val
+			cmdArgs = slices.Delete(cmdArgs, 0, 1)
+			currentArgCounter++
 			continue
 		}
 
