@@ -12,7 +12,10 @@ func generateHelp(argsConfig []arg, optionsConfig []option) string {
 		maxLen = max(len(arg.Name)+2, maxLen) // add 2 for `<>`
 	}
 	for _, option := range optionsConfig {
-		optLen := len(option.Name) + 2 // add 2 for `--`
+		optLen := 0
+		if option.Name != "" {
+			optLen += len(option.Name) + 2 // add 2 for `--`
+		}
 		if option.Value != "" {
 			optLen += len(option.Value) + 3 // add 3 for ` <>`
 		}
@@ -35,11 +38,22 @@ func generateHelp(argsConfig []arg, optionsConfig []option) string {
 
 	options := "OPTIONS:\n"
 	for _, opt := range optionsConfig {
-		optLen := len(opt.Name) + 2 // add `--`
+		optLen := 0
+		name := ""
+		if opt.Name != "" {
+			name = fmt.Sprintf("--%s", opt.Name)
+			optLen += len(opt.Name) + 2 // add `--`
+		}
 		short := ""
 		if opt.Short != "" {
-			short = fmt.Sprintf("-%s, ", opt.Short)
-			optLen += len(opt.Short) + 3 // add `-, `
+			if opt.Name == "" {
+				short = fmt.Sprintf("-%s", opt.Short)
+				optLen += len(opt.Short) + 1 // add `-`
+
+			} else {
+				short = fmt.Sprintf("-%s, ", opt.Short)
+				optLen += len(opt.Short) + 3 // add `-, `
+			}
 		}
 		value := ""
 		if opt.Value != "" {
@@ -51,8 +65,8 @@ func generateHelp(argsConfig []arg, optionsConfig []option) string {
 			defaultStr = fmt.Sprintf(" (default: %s)", opt.Default)
 		}
 		options += fmt.Sprintf(
-			"  %s--%s%s%s        %s%s\n",
-			short, opt.Name, value, strings.Repeat(" ", maxLen-optLen), opt.Help, defaultStr,
+			"  %s%s%s%s        %s%s\n",
+			short, name, value, strings.Repeat(" ", maxLen-optLen), opt.Help, defaultStr,
 		)
 	}
 	options += fmt.Sprintf("  -h, --help%s        Display this help and exit.", strings.Repeat(" ", maxLen-10))
@@ -70,7 +84,15 @@ func generateUsage(argsConfig []arg, optionsConfig []option) string {
 	}
 	options := ""
 	for _, option := range optionsConfig {
-		optionHelp := fmt.Sprintf("[--%s", option.Name)
+		optionHelp := "["
+		if option.Name != "" {
+			optionHelp += fmt.Sprintf("--%s", option.Name)
+		} else {
+			if option.Short == "" {
+				continue
+			}
+			optionHelp += fmt.Sprintf("-%s", option.Short)
+		}
 		if option.Value != "" {
 			optionHelp += fmt.Sprintf(" <%s>", option.Value)
 		}

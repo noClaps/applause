@@ -16,8 +16,10 @@ func HandleReflection(argStructType reflect.Type, argStructVal reflect.Value) ([
 		}
 
 		fieldName := PascalToKebabCase(field.Name)
-		if name := field.Tag.Get("name"); name != "" {
+		if name, ok := field.Tag.Lookup("name"); ok && name != "" {
 			fieldName = name
+		} else if ok && name == "" {
+			fieldName = ""
 		}
 		if field.Tag.Get("type") == "" || field.Tag.Get("type") == "arg" {
 			argsConf = append(argsConf, arg{
