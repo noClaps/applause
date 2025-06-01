@@ -97,6 +97,8 @@ Each field should have some struct tags:
   }
   ```
 
+  You can also set `name:""` to use only the short form. If no `short` tag is set then the option will be inaccessible and will not appear in the help menu.
+
 - `help`: The help text for the argument or option, will be displayed in the command help when the command is called with `--help` or `-h`. Example:
 
   ```go
