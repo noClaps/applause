@@ -23,6 +23,7 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 	}
 
 	currentArgCounter := 0
+	onlyParseArgs := false
 	for len(cmdArgs) > 0 {
 		arg := cmdArgs[0]
 
@@ -31,8 +32,14 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 			os.Exit(0)
 		}
 
+		if arg == "--" {
+			onlyParseArgs = true
+			cmdArgs = slices.Delete(cmdArgs, 0, 1)
+			continue
+		}
+
 		// Long option
-		if len(arg) >= 2 && arg[:2] == "--" {
+		if len(arg) >= 2 && arg[:2] == "--" && !onlyParseArgs {
 			if i := strings.Index(arg, "="); i != -1 {
 				key := arg[2:i]
 				val := arg[i+1:]
@@ -82,7 +89,7 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 		}
 
 		// Short option
-		if arg[0] == '-' {
+		if arg[0] == '-' && !onlyParseArgs {
 			optionName := arg[1:]
 			optIndex := slices.IndexFunc(optionsConfig, func(o option) bool {
 				return o.Short == optionName
