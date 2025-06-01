@@ -18,7 +18,9 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 	parsedVals := make(map[string]any)
 
 	cmdArgs := os.Args[1:]
-	if len(argsConfig) > 0 && len(cmdArgs) == 0 {
+	if len(argsConfig) > 0 && len(cmdArgs) == 0 || slices.ContainsFunc(cmdArgs, func(arg string) bool {
+		return arg == "--help" || arg == "-h"
+	}) {
 		fmt.Println(generateHelp(argsConfig, optionsConfig))
 		os.Exit(0)
 	}
@@ -27,11 +29,6 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 	onlyParseArgs := false
 	for len(cmdArgs) > 0 {
 		arg := cmdArgs[0]
-
-		if arg == "--help" || arg == "-h" {
-			fmt.Fprintln(os.Stderr, generateHelp(argsConfig, optionsConfig))
-			os.Exit(0)
-		}
 
 		if arg == "--" {
 			onlyParseArgs = true
