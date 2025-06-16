@@ -52,6 +52,9 @@ func generateHelp(argsConfig []arg, optionsConfig []option) string {
 		)
 	}
 	arguments = strings.TrimSpace(arguments)
+	if arguments != "" {
+		arguments += "\n\n"
+	}
 
 	options := "OPTIONS:\n"
 	for _, opt := range optionsConfig {
@@ -106,7 +109,7 @@ func generateHelp(argsConfig []arg, optionsConfig []option) string {
 	options += fmt.Sprintf("  -h, --help%s        Display this help and exit.", strings.Repeat(" ", maxLen-10))
 	options = strings.TrimSpace(options)
 
-	help := fmt.Sprintf("%s\n\n%s\n\n%s", generateUsage(argsConfig, optionsConfig), arguments, options)
+	help := fmt.Sprintf("%s\n\n%s%s", generateUsage(argsConfig, optionsConfig), arguments, options)
 	return strings.TrimSpace(help)
 }
 
@@ -116,6 +119,11 @@ func generateUsage(argsConfig []arg, optionsConfig []option) string {
 	for _, arg := range argsConfig {
 		arguments += fmt.Sprintf("<%s> ", arg.Name)
 	}
+	arguments = strings.TrimSpace(arguments)
+	if arguments != "" {
+		arguments += " "
+	}
+
 	options := ""
 	for _, option := range optionsConfig {
 		optionHelp := "["
@@ -133,5 +141,6 @@ func generateUsage(argsConfig []arg, optionsConfig []option) string {
 		optionHelp += "] "
 		options += optionHelp
 	}
-	return fmt.Sprintf("USAGE: %s %s %s", cmdName, strings.TrimSpace(arguments), strings.TrimSpace(options))
+	options = strings.TrimSpace(options)
+	return fmt.Sprintf("USAGE: %s %s%s", cmdName, arguments, options)
 }
