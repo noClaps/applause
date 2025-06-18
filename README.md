@@ -42,7 +42,7 @@ func main() {
 This will generate the CLI tool for you. If you run `go build -o program` and then `./program --help`, you'll see:
 
 ```
-USAGE: ./program <my-arg> <my-arg-2> [--opt-1 <option>] [--opt-2]
+USAGE: program <my-arg> <my-arg-2> [--opt-1 <option>] [--opt-2]
 
 ARGUMENTS:
   <my-arg>                    This is the help text for my-arg
@@ -61,6 +61,42 @@ MyArg: hello, MyArg2: hi, Opt1: 5, Opt2: true
 ```
 
 The values parsed from the command line arguments are put back into the `args` struct, and can be used as needed from there.
+
+You can also get the usage and help strings by using `applause.Usage` and `applause.Help`, after you have called `applause.Parse()`:
+
+```go
+// ...
+
+func main() {
+	args := Args{}
+	_ = applause.Parse(&args)
+	help := applause.Help
+	usage := applause.Usage
+
+	fmt.Println("help:\n", help)
+	fmt.Println()
+	fmt.Println("usage:\n", usage)
+}
+```
+
+This will output:
+
+```
+help:
+USAGE: program <my-arg> <my-arg-2> [--opt-1 <option>] [--opt-2]
+
+ARGUMENTS:
+  <my-arg>                    This is the help text for my-arg
+  <my-arg-2>                  This is the help text for my-arg-2
+
+OPTIONS:
+  -o, --opt-1 <option>        This is the help text for opt-1 (default: 5)
+  -p, --opt-2                 This is the help text for opt-2
+  -h, --help                  Display this help and exit.
+
+usage:
+USAGE: program <my-arg> <my-arg-2> [--opt-1 <option>] [--opt-2]
+```
 
 ## Configuration
 
@@ -127,6 +163,78 @@ Each field should have some struct tags:
   }
   ```
 
+### Multiple arguments
+
+If you'd like an argument to take multiple values, you can use a slice. The supported types are:
+
+- `[]bool`
+- `[]float32`, `[]float64`
+- `[]int`, `[]int8`, `[]int16`, `[]int32`, `[]int64`
+- `[]uint`, `[]uint8`, `[]uint16`, `[]uint32`, `[]uint64`
+- `[]complex64`, `[]complex128`
+- `[]string`
+
+For example, if you have:
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+type Args struct {
+	First string `help:"First argument"`
+	Multiple []string `help:"Multiple arguments"`
+	Last string `help:"Last argument"`
+}
+
+func main() {
+	args := Args{}
+	_ = applause.Parse(&args)
+
+	fmt.Println(args.First, args.Multiple, args.Last)
+}
+```
+
+and you run:
+
+```sh
+./program first second third fourth fifth
+```
+
+your output will be:
+
+```
+first [second third fourth] fifth
+```
+
+Note that the argument that takes multiple values is optional, since the slice can simply be empty:
+
+```
+USAGE: program <first> [multiple...] <last>
+
+ARGUMENTS:
+  <first>              First argument
+  [multiple...]        Multiple arguments
+  <last>               Last argument
+
+OPTIONS:
+  -h, --help           Display this help and exit.
+```
+
+If you run:
+
+```sh
+./program first second
+```
+
+your output will be:
+
+```
+first [] second
+```
+
 ### Default options
 
 You can also set default values for options and they will appear in the help menu. For example, if you have:
@@ -156,7 +264,7 @@ func main() {
 and you run `./program --help`, you'll see:
 
 ```
-USAGE: ./program <my-arg> <my-arg-2> [--opt-1 <option>] [--opt-2]
+USAGE: program <my-arg> <my-arg-2> [--opt-1 <option>] [--opt-2]
 
 ARGUMENTS:
   <my-arg>                    This is the help text for my-arg

@@ -24,7 +24,7 @@ func HandleReflection(argStructType reflect.Type, argStructVal reflect.Value) ([
 		if field.Tag.Get("type") == "" || field.Tag.Get("type") == "arg" {
 			argsConf = append(argsConf, arg{
 				Name: fieldName,
-				Type: field.Type.Kind().String(),
+				Type: field.Type.String(),
 				Help: field.Tag.Get("help"),
 			})
 		}

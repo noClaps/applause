@@ -4,17 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"reflect"
 	"slices"
 	"strconv"
 	"strings"
 )
 
-func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]any, error) {
-	argsConfig, optionsConfig, err := HandleReflection(argStructType, argStructVal)
-	if err != nil {
-		return nil, fmt.Errorf("Error during reflection: %v", err)
-	}
+func Parse(argsConfig []arg, optionsConfig []option) (map[string]any, error) {
 	parsedVals := make(map[string]any)
 
 	cmdArgs := os.Args[1:]
@@ -25,34 +20,32 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 		os.Exit(0)
 	}
 
-	currentArgCounter := 0
+	arguments := []string{}
 	onlyParseArgs := false
-	for len(cmdArgs) > 0 {
-		arg := cmdArgs[0]
+	for i := 0; i < len(cmdArgs); i++ {
+		arg := cmdArgs[i]
 
 		if arg == "--" {
 			onlyParseArgs = true
-			cmdArgs = slices.Delete(cmdArgs, 0, 1)
 			continue
 		}
 
 		// Long option
 		if len(arg) >= 2 && arg[:2] == "--" && !onlyParseArgs {
-			if i := strings.Index(arg, "="); i != -1 {
-				key := arg[2:i]
-				val := arg[i+1:]
+			if si := strings.Index(arg, "="); si != -1 {
+				key := arg[2:si]
+				val := arg[si+1:]
 				optIndex := slices.IndexFunc(optionsConfig, func(o option) bool {
 					return o.Name == key
 				})
 				if optIndex == -1 {
-					return nil, fmt.Errorf("`%s` is not a recognised option.", arg[:i])
+					return nil, fmt.Errorf("`%s` is not a recognised option.", arg[:si])
 				}
 				parsedVal, err := valFromString(val, optionsConfig[optIndex].Type)
 				if err != nil {
 					return nil, fmt.Errorf("Error parsing val from `%v`: %v", val, err)
 				}
 				parsedVals[key] = parsedVal
-				cmdArgs = slices.Delete(cmdArgs, 0, 1)
 				continue
 			}
 
@@ -65,25 +58,76 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 			}
 			if optionsConfig[optIndex].Type == "bool" {
 				parsedVals[key] = true
-				cmdArgs = slices.Delete(cmdArgs, 0, 1)
 				continue
 			}
-			if len(cmdArgs) <= 1 {
+			if len(cmdArgs) <= i+1 {
 				return nil, fmt.Errorf("Value not provided for option `%s`", arg)
 			}
-			val := cmdArgs[1]
+			val := cmdArgs[i+1]
 			parsedVal, err := valFromString(val, optionsConfig[optIndex].Type)
 			if err != nil {
 				return nil, fmt.Errorf("Error parsing val from `%v`: %v", val, err)
 			}
 			parsedVals[key] = parsedVal
-			cmdArgs = slices.Delete(cmdArgs, 0, 2)
+			i++
+			continue
+		}
+
+		if arg[0] == '-' && len(arg) > 1 && !onlyParseArgs {
+			optionName := arg[1:]
+			optIndex := slices.IndexFunc(optionsConfig, func(o option) bool {
+				return o.Short == optionName
+			})
+			if optIndex == -1 {
+				return nil, fmt.Errorf("`%s` is not a recognised option.", arg)
+			}
+			name := optionsConfig[optIndex].Name
+			if optionsConfig[optIndex].Type == "bool" {
+				parsedVals[name] = true
+				continue
+			}
+			val, err := valFromString(cmdArgs[i+1], optionsConfig[optIndex].Type)
+			if err != nil {
+				return nil, fmt.Errorf("Error parsing val from `%v`: %v", cmdArgs[i+1], err)
+			}
+			parsedVals[name] = val
+			i++
+			continue
+		}
+
+		arguments = append(arguments, arg)
+	}
+
+	currentArgCounter := 0
+	for i := 0; i < len(arguments); i++ {
+		arg := arguments[i]
+
+		if currentArgCounter == len(argsConfig) {
+			return nil, fmt.Errorf("Extra argument: `%s`", arg)
+		}
+
+		currentArg := argsConfig[currentArgCounter]
+		name := currentArg.Name
+
+		// Multiple arguments
+		if currentArg.Type[0:2] == "[]" {
+			argType := currentArg.Type[2:]
+			parsedArr := []any{}
+			for ; len(arguments)-i != len(argsConfig)-currentArgCounter-1; i++ {
+				arg = arguments[i]
+				val, err := valFromString(arg, argType)
+				if err != nil {
+					return nil, fmt.Errorf("Error parsing val from `%v`: %v", arg, err)
+				}
+				parsedArr = append(parsedArr, val)
+			}
+			parsedVals[name] = parsedArr
+			currentArgCounter++
+			i--
 			continue
 		}
 
 		if arg == "-" {
-			currentArg := argsConfig[currentArgCounter]
-			name := currentArg.Name
 			scanner := bufio.NewScanner(os.Stdin)
 			scanner.Scan()
 			stdinVal := scanner.Text()
@@ -92,42 +136,10 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 				return nil, fmt.Errorf("Error parsing val from `%v`: %v", stdinVal, err)
 			}
 			parsedVals[name] = val
-			cmdArgs = slices.Delete(cmdArgs, 0, 1)
 			currentArgCounter++
 			continue
 		}
 
-		// Short option
-		if arg[0] == '-' && !onlyParseArgs {
-			optionName := arg[1:]
-			optIndex := slices.IndexFunc(optionsConfig, func(o option) bool {
-				return o.Short == optionName
-			})
-			if optIndex == -1 {
-				fmt.Fprintf(os.Stderr, "\033[31mERROR:\033[0m `%s` is not a recognised option.\n", arg)
-				printUsage(argsConfig, optionsConfig)
-				os.Exit(1)
-			}
-			name := optionsConfig[optIndex].Name
-			if optionsConfig[optIndex].Type == "bool" {
-				parsedVals[name] = true
-				cmdArgs = slices.Delete(cmdArgs, 0, 1)
-				continue
-			}
-			val, err := valFromString(cmdArgs[1], optionsConfig[optIndex].Type)
-			if err != nil {
-				return nil, fmt.Errorf("Error parsing val from `%v`: %v", cmdArgs[1], err)
-			}
-			parsedVals[name] = val
-			cmdArgs = slices.Delete(cmdArgs, 0, 2)
-			continue
-		}
-
-		if currentArgCounter == len(argsConfig) {
-			return nil, fmt.Errorf("Extra argument: `%s`", arg)
-		}
-		currentArg := argsConfig[currentArgCounter]
-		name := currentArg.Name
 		val, err := valFromString(arg, currentArg.Type)
 		if err != nil {
 			return nil, fmt.Errorf("Error parsing val from `%v`: %v", arg, err)
