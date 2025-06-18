@@ -13,7 +13,7 @@ import (
 func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]any, error) {
 	argsConfig, optionsConfig, err := HandleReflection(argStructType, argStructVal)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error during reflection: %v", err)
 	}
 	parsedVals := make(map[string]any)
 
@@ -45,13 +45,11 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 					return o.Name == key
 				})
 				if optIndex == -1 {
-					logError(fmt.Errorf("`%s` is not a recognised option.", arg[:i]))
-					printUsage(argsConfig, optionsConfig)
-					os.Exit(1)
+					return nil, fmt.Errorf("`%s` is not a recognised option.", arg[:i])
 				}
 				parsedVal, err := valFromString(val, optionsConfig[optIndex].Type)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("Error parsing val from `%v`: %v", val, err)
 				}
 				parsedVals[key] = parsedVal
 				cmdArgs = slices.Delete(cmdArgs, 0, 1)
@@ -63,9 +61,7 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 				return o.Name == key
 			})
 			if optIndex == -1 {
-				logError(fmt.Errorf("`%s` is not a recognised option", arg))
-				printUsage(argsConfig, optionsConfig)
-				os.Exit(1)
+				return nil, fmt.Errorf("`%s` is not a recognised option", arg)
 			}
 			if optionsConfig[optIndex].Type == "bool" {
 				parsedVals[key] = true
@@ -73,13 +69,12 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 				continue
 			}
 			if len(cmdArgs) <= 1 {
-				logError(fmt.Errorf("Value not provided for option `%s`", arg))
-				os.Exit(1)
+				return nil, fmt.Errorf("Value not provided for option `%s`", arg)
 			}
 			val := cmdArgs[1]
 			parsedVal, err := valFromString(val, optionsConfig[optIndex].Type)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Error parsing val from `%v`: %v", val, err)
 			}
 			parsedVals[key] = parsedVal
 			cmdArgs = slices.Delete(cmdArgs, 0, 2)
@@ -94,7 +89,7 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 			stdinVal := scanner.Text()
 			val, err := valFromString(stdinVal, currentArg.Type)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Error parsing val from `%v`: %v", stdinVal, err)
 			}
 			parsedVals[name] = val
 			cmdArgs = slices.Delete(cmdArgs, 0, 1)
@@ -121,7 +116,7 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 			}
 			val, err := valFromString(cmdArgs[1], optionsConfig[optIndex].Type)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Error parsing val from `%v`: %v", cmdArgs[1], err)
 			}
 			parsedVals[name] = val
 			cmdArgs = slices.Delete(cmdArgs, 0, 2)
@@ -129,23 +124,20 @@ func Parse(argStructType reflect.Type, argStructVal reflect.Value) (map[string]a
 		}
 
 		if currentArgCounter == len(argsConfig) {
-			logError(fmt.Errorf("Extra argument: `%s`", arg))
-			printUsage(argsConfig, optionsConfig)
-			os.Exit(1)
+			return nil, fmt.Errorf("Extra argument: `%s`", arg)
 		}
 		currentArg := argsConfig[currentArgCounter]
 		name := currentArg.Name
 		val, err := valFromString(arg, currentArg.Type)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Error parsing val from `%v`: %v", arg, err)
 		}
 		parsedVals[name] = val
 		cmdArgs = slices.Delete(cmdArgs, 0, 1)
 		currentArgCounter++
 	}
 	if currentArgCounter < len(argsConfig) {
-		logError(fmt.Errorf("Not enough arguments provided."))
-		printUsage(argsConfig, optionsConfig)
+		return nil, fmt.Errorf("Not enough arguments provided.")
 	}
 
 	return parsedVals, nil
@@ -159,91 +151,91 @@ func valFromString(input string, returnType string) (any, error) {
 	case "bool":
 		b, err := strconv.ParseBool(input)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing bool: %v", err)
 		}
 		return bool(b), nil
 	case "float32":
 		f, err := strconv.ParseFloat(input, 32)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing float32: %v", err)
 		}
 		return float32(f), nil
 	case "float64":
 		f, err := strconv.ParseFloat(input, 64)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing float64: %v", err)
 		}
 		return float64(f), nil
 	case "int":
 		i, err := strconv.ParseInt(input, 10, 64)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing int: %v", err)
 		}
 		return int(i), nil
 	case "int8":
 		i, err := strconv.ParseInt(input, 10, 8)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing int8: %v", err)
 		}
 		return int8(i), nil
 	case "int16":
 		i, err := strconv.ParseInt(input, 10, 16)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing int16: %v", err)
 		}
 		return int16(i), nil
 	case "int32":
 		i, err := strconv.ParseInt(input, 10, 32)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing int32: %v", err)
 		}
 		return int32(i), nil
 	case "int64":
 		i, err := strconv.ParseInt(input, 10, 64)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing int64: %v", err)
 		}
 		return int64(i), nil
 	case "uint":
 		u, err := strconv.ParseUint(input, 10, 64)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing uint: %v", err)
 		}
 		return uint(u), nil
 	case "uint8":
 		u, err := strconv.ParseUint(input, 10, 8)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing uint8: %v", err)
 		}
 		return uint8(u), nil
 	case "uint16":
 		u, err := strconv.ParseUint(input, 10, 16)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing uint16: %v", err)
 		}
 		return uint16(u), nil
 	case "uint32":
 		u, err := strconv.ParseUint(input, 10, 32)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing uint32: %v", err)
 		}
 		return uint32(u), nil
 	case "uint64":
 		u, err := strconv.ParseUint(input, 10, 64)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing uint64: %v", err)
 		}
 		return uint64(u), nil
 	case "complex64":
 		c, err := strconv.ParseComplex(input, 64)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing complex64: %v", err)
 		}
 		return complex64(c), nil
 	case "complex128":
 		c, err := strconv.ParseComplex(input, 128)
 		if err != nil {
-			logError(err)
+			return nil, fmt.Errorf("Error parsing complex128: %v", err)
 		}
 		return complex128(c), nil
 	case "string":

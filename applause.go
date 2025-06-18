@@ -38,7 +38,7 @@ func Parse(args any) error {
 	argStruct := rv.Elem().Type()
 	parsedVals, err := internal.Parse(argStruct, rv.Elem())
 	if err != nil {
-		return err
+		return fmt.Errorf("Error during parsing: %v", err)
 	}
 	for k, v := range parsedVals {
 		for f := range rv.Elem().NumField() {
