@@ -16,7 +16,7 @@ func Parse(argsConfig []arg, optionsConfig []option) (map[string]any, error) {
 	if len(argsConfig) > 0 && len(cmdArgs) == 0 || slices.ContainsFunc(cmdArgs, func(arg string) bool {
 		return arg == "--help" || arg == "-h"
 	}) {
-		fmt.Println(generateHelp(argsConfig, optionsConfig))
+		fmt.Println(GenerateHelp(argsConfig, optionsConfig))
 		os.Exit(0)
 	}
 

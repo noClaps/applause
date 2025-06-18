@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func generateHelp(argsConfig []arg, optionsConfig []option) string {
+func GenerateHelp(argsConfig []arg, optionsConfig []option) string {
 	maxLen := 10 // length of `-h, --help`
 	for _, arg := range argsConfig {
 		maxLen = max(len(arg.Name)+2, maxLen) // add 2 for `<>`
@@ -119,12 +119,13 @@ func generateHelp(argsConfig []arg, optionsConfig []option) string {
 	options += fmt.Sprintf("  -h, --help%s        Display this help and exit.", strings.Repeat(" ", maxLen-10))
 	options = strings.TrimSpace(options)
 
-	help := fmt.Sprintf("%s\n\n%s%s", generateUsage(argsConfig, optionsConfig), arguments, options)
+	help := fmt.Sprintf("%s\n\n%s%s", GenerateUsage(argsConfig, optionsConfig), arguments, options)
 	return strings.TrimSpace(help)
 }
 
-func generateUsage(argsConfig []arg, optionsConfig []option) string {
-	cmdName := os.Args[0]
+func GenerateUsage(argsConfig []arg, optionsConfig []option) string {
+	cmdPath := strings.Split(os.Args[0], "/")
+	cmdName := cmdPath[len(cmdPath)-1]
 	arguments := ""
 	for _, arg := range argsConfig {
 		if arg.Type[0:2] == "[]" {

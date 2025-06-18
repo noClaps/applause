@@ -7,6 +7,16 @@ import (
 	"github.com/noclaps/applause/internal"
 )
 
+// The help string for the command. This will only contain a value if
+// `applause.Parse()` has been called first, otherwise it will be an empty
+// string.
+var Help string = ""
+
+// The usage string for the command. This will only contain a value if
+// `applause.Parse()` has been called first, otherwise it will be an empty
+// string.
+var Usage string = ""
+
 // The input is a pointer to the args struct. Each field in the args struct
 // should have some tags:
 //
@@ -40,6 +50,8 @@ func Parse(args any) error {
 	if err != nil {
 		return fmt.Errorf("Error during reflection: %v", err)
 	}
+	Help = internal.GenerateHelp(argsConfig, optionsConfig)
+	Usage = internal.GenerateUsage(argsConfig, optionsConfig)
 	parsedVals, err := internal.Parse(argsConfig, optionsConfig)
 	if err != nil {
 		return fmt.Errorf("Error during parsing: %v", err)

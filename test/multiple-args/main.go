@@ -16,6 +16,8 @@ func main() {
 	args := Args{}
 	if err := applause.Parse(&args); err != nil {
 		fmt.Println(err)
+		fmt.Println(applause.Help)
+		fmt.Println(applause.Usage)
 		return
 	}
 
