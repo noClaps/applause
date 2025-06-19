@@ -73,7 +73,7 @@ func Parse(argsConfig []arg, optionsConfig []option) (map[string]any, error) {
 			continue
 		}
 
-		if arg[0] == '-' && len(arg) > 1 && !onlyParseArgs {
+		if len(arg) > 1 && arg[0] == '-' && !onlyParseArgs {
 			optionName := arg[1:]
 			optIndex := slices.IndexFunc(optionsConfig, func(o option) bool {
 				return o.Short == optionName
