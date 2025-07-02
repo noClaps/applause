@@ -2,9 +2,11 @@ package applause
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 
-	"github.com/noclaps/applause/internal"
+	"github.com/noclaps/applause/internal/parser"
+	"github.com/noclaps/applause/internal/utils"
 )
 
 // The help string for the command. This will only contain a value if
@@ -45,215 +47,14 @@ func Parse(args any) error {
 	if rv.Kind() != reflect.Pointer || rv.IsNil() {
 		return fmt.Errorf("Input value should be a pointer to a struct, received: %v", rv.Kind().String())
 	}
-	argStruct := rv.Elem().Type()
-	argsConfig, optionsConfig, err := internal.HandleReflection(argStruct, rv.Elem())
-	if err != nil {
-		return fmt.Errorf("Error during reflection: %v", err)
-	}
-	Help = internal.GenerateHelp(argsConfig, optionsConfig)
-	Usage = internal.GenerateUsage(argsConfig, optionsConfig)
-	parsedVals, err := internal.Parse(argsConfig, optionsConfig)
-	if err != nil {
-		return fmt.Errorf("Error during parsing: %v", err)
+
+	parser := parser.NewParser(utils.GetCmdName(), os.Args[1:], rv)
+	Help = parser.Help
+	Usage = parser.Usage
+
+	if err := parser.Parse(); err != nil {
+		return err
 	}
 
-	for k, v := range parsedVals {
-		for f := range rv.Elem().NumField() {
-			field := rv.Elem().Type().Field(f)
-			fieldName := internal.PascalToKebabCase(field.Name)
-			if fn, ok := field.Tag.Lookup("name"); ok {
-				fieldName = fn
-			}
-			if k == fieldName {
-				fieldType := rv.Elem().Field(f).Type().String()
-				if fieldType[0:2] != "[]" {
-					rv.Elem().Field(f).Set(reflect.ValueOf(v))
-					continue
-				}
-
-				switch fieldType[2:] {
-				case "bool":
-					v := v.([]any)
-					slice := make([]bool, len(v))
-					for i := range v {
-						val, ok := v[i].(bool)
-						if !ok {
-							return fmt.Errorf("Error parsing bool slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "float32":
-					v := v.([]any)
-					slice := make([]float32, len(v))
-					for i := range v {
-						val, ok := v[i].(float32)
-						if !ok {
-							return fmt.Errorf("Error parsing float32 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "float64":
-					v := v.([]any)
-					slice := make([]float64, len(v))
-					for i := range v {
-						val, ok := v[i].(float64)
-						if !ok {
-							return fmt.Errorf("Error parsing float64 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "int":
-					v := v.([]any)
-					slice := make([]int, len(v))
-					for i := range v {
-						val, ok := v[i].(int)
-						if !ok {
-							return fmt.Errorf("Error parsing int slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "int8":
-					v := v.([]any)
-					slice := make([]int8, len(v))
-					for i := range v {
-						val, ok := v[i].(int8)
-						if !ok {
-							return fmt.Errorf("Error parsing int8 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "int16":
-					v := v.([]any)
-					slice := make([]int16, len(v))
-					for i := range v {
-						val, ok := v[i].(int16)
-						if !ok {
-							return fmt.Errorf("Error parsing int16 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "int32":
-					v := v.([]any)
-					slice := make([]int32, len(v))
-					for i := range v {
-						val, ok := v[i].(int32)
-						if !ok {
-							return fmt.Errorf("Error parsing int32 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "int64":
-					v := v.([]any)
-					slice := make([]int64, len(v))
-					for i := range v {
-						val, ok := v[i].(int64)
-						if !ok {
-							return fmt.Errorf("Error parsing int64 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "uint":
-					v := v.([]any)
-					slice := make([]uint, len(v))
-					for i := range v {
-						val, ok := v[i].(uint)
-						if !ok {
-							return fmt.Errorf("Error parsing uint slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "uint8":
-					v := v.([]any)
-					slice := make([]uint8, len(v))
-					for i := range v {
-						val, ok := v[i].(uint8)
-						if !ok {
-							return fmt.Errorf("Error parsing uint8 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "uint16":
-					v := v.([]any)
-					slice := make([]uint16, len(v))
-					for i := range v {
-						val, ok := v[i].(uint16)
-						if !ok {
-							return fmt.Errorf("Error parsing uint16 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "uint32":
-					v := v.([]any)
-					slice := make([]uint32, len(v))
-					for i := range v {
-						val, ok := v[i].(uint32)
-						if !ok {
-							return fmt.Errorf("Error parsing uint32 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "uint64":
-					v := v.([]any)
-					slice := make([]uint64, len(v))
-					for i := range v {
-						val, ok := v[i].(uint64)
-						if !ok {
-							return fmt.Errorf("Error parsing uint64 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "complex64":
-					v := v.([]any)
-					slice := make([]complex64, len(v))
-					for i := range v {
-						val, ok := v[i].(complex64)
-						if !ok {
-							return fmt.Errorf("Error parsing complex64 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "complex128":
-					v := v.([]any)
-					slice := make([]complex128, len(v))
-					for i := range v {
-						val, ok := v[i].(complex128)
-						if !ok {
-							return fmt.Errorf("Error parsing complex128 slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				case "string":
-					v := v.([]any)
-					slice := make([]string, len(v))
-					for i := range v {
-						val, ok := v[i].(string)
-						if !ok {
-							return fmt.Errorf("Error parsing string slice from `%v`", v)
-						}
-						slice[i] = val
-					}
-					rv.Elem().Field(f).Set(reflect.ValueOf(slice))
-				default:
-					return fmt.Errorf("Type `%s` is unsupported, please use a supported type.", fieldType)
-				}
-
-			}
-		}
-	}
 	return nil
 }
