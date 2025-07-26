@@ -275,3 +275,82 @@ OPTIONS:
   -p, --opt-2                 This is the help text for opt-2
   -h, --help                  Display this help and exit.
 ```
+
+### Commands
+
+You can define commands by using a struct as the field type:
+
+```go
+package main
+
+import (
+	"github.com/noclaps/applause"
+)
+
+type Args struct {
+	Add struct {
+		Names []string `help:"Packages to install"`
+		Quiet bool     `type:"option" short:"q" help:"Make the output quiet."`
+	} `help:"Add a package"`
+}
+
+func main() {
+	args := Args{}
+	_ = applause.Parse(args)
+
+	args.Add.Names
+}
+```
+
+If you run `./program --help` on this, you'll get:
+
+```
+USAGE: program [add]
+
+COMMANDS:
+  add               Add a package
+
+OPTIONS:
+  -h, --help        Display this help and exit.
+```
+
+You can also run `./program add --help` to get the help menu for the command:
+
+```
+USAGE: program add [names...] [--quiet]
+
+ARGUMENTS:
+  [names...]           Packages to install
+
+OPTIONS:
+  -q, --quiet          Make the output quiet.
+  -h, --help           Display this help and exit.
+```
+
+You can add subcommands by nesting structs:
+
+```go
+package main
+
+import (
+	"github.com/noclaps/applause"
+)
+
+type Args struct {
+	Update struct {
+		Upgrade struct {
+			All bool `type:"option" short:"A" help:"Upgrade all packages"`
+		} `help:"Upgrade packages"`
+		All bool `type:"option" short:"A" help:"Update all packages"`
+	} `help:"Update packages"`
+}
+
+func main() {
+	args := Args{}
+	_ = applause.Parse(&args)
+
+	args
+}
+```
+
+This will allow you to run subcommands like `./program update upgrade`.

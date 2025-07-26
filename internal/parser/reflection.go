@@ -13,6 +13,7 @@ func (p *Parser) reflection() error {
 
 	positionalsConf := []positional{}
 	optionsConf := []option{}
+	commandsConf := []command{}
 
 	for i := range config.NumField() {
 		field := configType.Field(i)
@@ -25,6 +26,16 @@ func (p *Parser) reflection() error {
 			fieldName = name
 		}
 
+		if field.Type.Kind() == reflect.Struct {
+			commandsConf = append(commandsConf, command{
+				StructName: field.Name,
+				Name:       fieldName,
+				Value:      config.Field(i).Addr(),
+				Help:       field.Tag.Get("help"),
+			})
+			continue
+		}
+
 		if field.Tag.Get("type") == "arg" || field.Tag.Get("type") == "" {
 			positionalsConf = append(positionalsConf, positional{
 				StructName: field.Name,
@@ -32,6 +43,7 @@ func (p *Parser) reflection() error {
 				Type:       field.Type,
 				Help:       field.Tag.Get("help"),
 			})
+			continue
 		}
 
 		if field.Tag.Get("type") == "option" {
@@ -66,5 +78,6 @@ func (p *Parser) reflection() error {
 
 	p.Positionals = positionalsConf
 	p.Options = optionsConf
+	p.Commands = commandsConf
 	return nil
 }

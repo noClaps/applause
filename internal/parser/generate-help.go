@@ -7,6 +7,18 @@ import (
 )
 
 func (p *Parser) generateUsage() {
+	commandNames := make([]string, len(p.Commands))
+	for i, command := range p.Commands {
+		commandNames[i] = command.Name
+	}
+	commandUsage := fmt.Sprintf("[%s]", strings.Join(commandNames, " | "))
+	if commandUsage == "[]" {
+		commandUsage = ""
+	}
+	if commandUsage != "" {
+		commandUsage += " "
+	}
+
 	positionalUsage := ""
 	for _, positional := range p.Positionals {
 		if positional.Type.Kind() == reflect.Slice {
@@ -39,11 +51,14 @@ func (p *Parser) generateUsage() {
 	}
 	optionUsage = strings.TrimSpace(optionUsage)
 
-	p.Usage = fmt.Sprintf("USAGE: %s %s%s", p.Name, positionalUsage, optionUsage)
+	p.Usage = fmt.Sprintf("USAGE: %s %s%s%s", p.Name, commandUsage, positionalUsage, optionUsage)
 }
 
 func (p *Parser) generateHelp() {
 	maxLen := 10 // length of `-h, --help`
+	for _, command := range p.Commands {
+		maxLen = max(len(command.Name), maxLen)
+	}
 	for _, positional := range p.Positionals {
 		maxLen = max(len(positional.Name)+2, maxLen) // add 2 for `<>`
 		if positional.Type.Kind() == reflect.Slice {
@@ -64,28 +79,28 @@ func (p *Parser) generateHelp() {
 		maxLen = max(optLen, maxLen)
 	}
 
+	commandHelp := ""
+	for _, command := range p.Commands {
+		if commandHelp == "" {
+			commandHelp = "\nCOMMANDS:\n"
+		}
+		help := wrapLines(command.Help, maxLen)
+		commandHelp += fmt.Sprintf(
+			"  %s%s        %s\n",
+			command.Name, strings.Repeat(" ", maxLen-len(command.Name)), help,
+		)
+	}
+	commandHelp = strings.TrimSpace(commandHelp)
+	if commandHelp != "" {
+		commandHelp += "\n\n"
+	}
+
 	positionalHelp := ""
 	for _, positional := range p.Positionals {
 		if positionalHelp == "" {
 			positionalHelp = "\nARGUMENTS:\n"
 		}
-		help := positional.Help
-		if len(positional.Help) > 80 {
-			help = ""
-			words := strings.Split(positional.Help, " ")
-			spaceLen := 10 + maxLen // 2 for starting spaces + 8 for middle spaces
-			i := 0
-			for i < len(words) {
-				line := ""
-				for i < len(words) && len(line+words[i]) < 80 {
-					line += words[i] + " "
-					i++
-				}
-				line += "\n" + strings.Repeat(" ", spaceLen)
-				help += line
-			}
-			help = strings.TrimSpace(help)
-		}
+		help := wrapLines(positional.Help, maxLen)
 		if positional.Type.Kind() == reflect.Slice {
 			positionalHelp += fmt.Sprintf(
 				"  [%s...]%s        %s\n",
@@ -131,23 +146,7 @@ func (p *Parser) generateHelp() {
 		if !option.Default.IsZero() {
 			defaultStr = fmt.Sprintf(" (default: %v)", option.Default)
 		}
-		help := option.Help
-		if len(option.Help) > 80 {
-			help = ""
-			words := strings.Split(option.Help, " ")
-			spaceLen := 10 + maxLen // 2 for starting spaces + 8 for middle spaces
-			i := 0
-			for i < len(words) {
-				line := ""
-				for i < len(words) && len(line+words[i]) < 80 {
-					line += words[i] + " "
-					i++
-				}
-				line += "\n" + strings.Repeat(" ", spaceLen)
-				help += line
-			}
-			help = strings.TrimSpace(help)
-		}
+		help := wrapLines(option.Help, maxLen)
 		optionHelp += fmt.Sprintf(
 			"  %s%s%s%s        %s%s\n",
 			short, name, value, strings.Repeat(" ", maxLen-optLen), help, defaultStr,
@@ -156,6 +155,28 @@ func (p *Parser) generateHelp() {
 	optionHelp += fmt.Sprintf("  -h, --help%s        Display this help and exit.", strings.Repeat(" ", maxLen-10))
 	optionHelp = strings.TrimSpace(optionHelp)
 
-	help := fmt.Sprintf("%s\n\n%s%s", p.Usage, positionalHelp, optionHelp)
+	help := fmt.Sprintf("%s\n\n%s%s%s", p.Usage, commandHelp, positionalHelp, optionHelp)
 	p.Help = strings.TrimSpace(help)
+}
+
+func wrapLines(help string, maxLen int) string {
+	if len(help) <= 80 {
+		return help
+	}
+
+	helpString := ""
+	words := strings.Split(help, " ")
+	spaceLen := 10 + maxLen // 2 for starting spaces + 8 for middle spaces
+	i := 0
+	for i < len(words) {
+		line := ""
+		for i < len(words) && len(line+words[i]) < 80 {
+			line += words[i] + " "
+			i++
+		}
+		line += "\n" + strings.Repeat(" ", spaceLen)
+		helpString += line
+	}
+	helpString = strings.TrimSpace(helpString)
+	return helpString
 }

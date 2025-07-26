@@ -13,6 +13,7 @@ type Parser struct {
 	Config      reflect.Value // pointer to config struct
 	Positionals []positional
 	Options     []option
+	Commands    []command
 	Help        string
 	Usage       string
 	ParsedVals  map[string]reflect.Value
@@ -36,6 +37,20 @@ func NewParser(cmdName string, args []string, config reflect.Value) *Parser {
 }
 
 func (p *Parser) Parse() error {
+	if len(p.Commands) > 0 {
+		if len(p.Arguments) == 0 || p.Arguments[0] == "-h" || p.Arguments[0] == "--help" {
+			fmt.Println(p.Help)
+			os.Exit(0)
+		}
+		cIndex := p.FindComandByName(p.Arguments[0])
+		if cIndex != -1 {
+			command := p.Commands[cIndex]
+			nestedCmdName := fmt.Sprintf("%s %s", p.Name, command.Name)
+			nestedP := NewParser(nestedCmdName, p.Arguments[1:], command.Value)
+			return nestedP.Parse()
+		}
+	}
+
 	if len(p.Positionals) > 0 && len(p.Arguments) == 0 || slices.ContainsFunc(p.Arguments, func(arg string) bool {
 		return arg == "--help" || arg == "-h"
 	}) {
