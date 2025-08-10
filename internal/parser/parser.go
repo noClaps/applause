@@ -45,6 +45,11 @@ func (p *Parser) Parse() error {
 		cIndex := p.FindComandByName(p.Arguments[0])
 		if cIndex != -1 {
 			command := p.Commands[cIndex]
+			if command.Value.Elem().Kind() == reflect.Bool {
+				p.Config.Elem().FieldByName(command.StructName).SetBool(true)
+				return nil
+			}
+
 			nestedCmdName := fmt.Sprintf("%s %s", p.Name, command.Name)
 			nestedP := NewParser(nestedCmdName, p.Arguments[1:], command.Value)
 			return nestedP.Parse()

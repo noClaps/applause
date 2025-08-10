@@ -354,3 +354,26 @@ func main() {
 ```
 
 This will allow you to run subcommands like `./program update upgrade`.
+
+You can also have commands without any arguments using a boolean and the `type:"command"` tag:
+
+```go
+package main
+
+import (
+	"github.com/noclaps/applause"
+)
+
+type Args struct {
+	List bool `type:"command" help:"List files"`
+}
+
+func main() {
+	args := Args{}
+	_ = applause.Parse(&args)
+
+	args
+}
+```
+
+Running `./program list` will set `args.List` to `true`.

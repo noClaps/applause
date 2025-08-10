@@ -22,14 +22,14 @@ var Usage string = ""
 // The input is a pointer to the args struct. Each field in the args struct
 // should have some tags:
 //
-// - `type`: The type can be "arg" or "option". If omitted, the default is
+// - `type`: The type can be "arg", "option" or "command:. If omitted, the default is
 // "arg". If any other type is provided, the field is ignored.
 //
-// - `name`: The name of the argument or option. If omitted, the default is the
+// - `name`: The name of the argument, option or command. If omitted, the default is the
 // field name in kebab-case. If you'd like to have an option have a different
 // name, you can write it as `name:"option-name"` in the tags.
 //
-// - `help`: The help text for the argument or option, will be displayed in the
+// - `help`: The help text for the argument, option or command, will be displayed in the
 // command help when the command is called with `--help` or `-h`.
 //
 // - `short`: Only applicable when `type` is "option". The short form of the

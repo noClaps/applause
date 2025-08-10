@@ -21,6 +21,7 @@ type Args struct {
 		} `help:"Upgrade packages"`
 		All bool `type:"option" short:"A" help:"Update all packages"`
 	} `help:"Update packages"`
+	List bool `type:"command" help:"List installed packages"`
 }
 
 func main() {

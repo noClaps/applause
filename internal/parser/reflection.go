@@ -26,7 +26,7 @@ func (p *Parser) reflection() error {
 			fieldName = name
 		}
 
-		if field.Type.Kind() == reflect.Struct {
+		if field.Type.Kind() == reflect.Struct || (field.Tag.Get("type") == "command" && field.Type.Kind() == reflect.Bool) {
 			commandsConf = append(commandsConf, command{
 				StructName: field.Name,
 				Name:       fieldName,
