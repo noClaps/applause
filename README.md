@@ -377,3 +377,36 @@ func main() {
 ```
 
 Running `./program list` will set `args.List` to `true`.
+
+If you have a command that can take 0 or more arguments, you can define it using a struct pointer, like so:
+
+```go
+package main
+
+type Args struct {
+	Update *struct {
+		Packages []string `help:"List of packages to update"`
+	} `help:"This command can take 0 or more arguments"`
+	List bool `type:"command" help:"List installed packages"`
+}
+
+func main() {
+	args := Args{}
+	_ = applause.Parse(&args)
+
+	if args.Update != nil {
+		if len(args.Update.Packages) == 0 {
+			updateAll()
+		} else {
+			updatePackages(args.Update.Packages)
+		}
+	}
+
+	args.Update == nil
+}
+
+func updatePackages(packages []string) {}
+func updateAll() {}
+```
+
+If the value of the field is `nil`, then the command wasn't called. You can call this with `./program update` and `./program update go`, both are valid and will set `args.Update` to a non-`nil` value. In the latter case, `args.Update.Packages` will be equal to `[]string{"go"}`. However, if you call `./program list`, `args.Update` will be `nil`.

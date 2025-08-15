@@ -23,10 +23,11 @@ type option struct {
 }
 
 type command struct {
-	StructName string        // original name in struct
-	Name       string        // command name
-	Value      reflect.Value // command value
-	Help       string        // command help
+	StructName     string        // original name in struct
+	Name           string        // command name
+	Value          reflect.Value // command value
+	Help           string        // command help
+	AllowEmptyArgs bool          // allow command to be run without args
 }
 
 // Returns the index of the named positional, otherwise -1 if the positional doesn't exist
