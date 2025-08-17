@@ -38,6 +38,19 @@ func NewParser(cmdName string, args []string, config reflect.Value) *Parser {
 }
 
 func (p *Parser) Parse() error {
+	if i := slices.Index(p.Arguments, "--completions"); i != -1 {
+		shell := ""
+		if len(p.Arguments) > i+1 {
+			shell = p.Arguments[i+1]
+		}
+		completions, err := p.GenerateCompletions(shell)
+		if err != nil {
+			return err
+		}
+		fmt.Println(completions)
+		os.Exit(0)
+	}
+
 	if len(p.Commands) > 0 {
 		if (len(p.Arguments) == 0 && !p.AllowEmptyArgs) || p.Arguments[0] == "-h" || p.Arguments[0] == "--help" {
 			fmt.Println(p.Help)

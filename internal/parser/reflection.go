@@ -57,6 +57,9 @@ func (p *Parser) reflection() error {
 		}
 
 		if field.Tag.Get("type") == "option" {
+			if fieldName == "completions" {
+				return fmt.Errorf("Error in field `%s`: Field name cannot be `Completions` as this is reserved for the `--completions` option.", field.Name)
+			}
 			if fieldName == "help" {
 				return fmt.Errorf("Error in field `%s`: Field name cannot be `Help` as this is reserved for the `--help` option.", field.Name)
 			}

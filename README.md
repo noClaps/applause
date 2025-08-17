@@ -410,3 +410,16 @@ func updateAll() {}
 ```
 
 If the value of the field is `nil`, then the command wasn't called. You can call this with `./program update` and `./program update go`, both are valid and will set `args.Update` to a non-`nil` value. In the latter case, `args.Update.Packages` will be equal to `[]string{"go"}`. However, if you call `./program list`, `args.Update` will be `nil`.
+
+## Generating shell completions
+
+You can generate shell completions for your current shell using `--completions`, and for a specific shell using `--completions <shell>`:
+
+```sh
+./program --completions
+./program --completions zsh
+```
+
+The currently supported shells are:
+
+- ZSH
