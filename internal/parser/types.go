@@ -10,6 +10,7 @@ type positional struct {
 	Name       string       // positional name
 	Help       string       // positional help
 	Type       reflect.Type // positional type
+	Completion string       // positional completion
 }
 
 type option struct {

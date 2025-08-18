@@ -48,11 +48,40 @@ func (p *Parser) generateZshCompletions(indent int) string {
 		}
 	}
 	if len(p.Commands) == 0 {
-		return strings.TrimSpace(
-			fmt.Sprintf(
-				"%[1]s_arguments '(-h --help)'{-h,--help}'[Display this help and exit.]' %s",
-				indentSmall, strings.Join(options, " ")),
-		)
+		posAndOpts := fmt.Sprintf(
+			"%[1]s_arguments '(-h --help)'{-h,--help}'[Display this help and exit.]' %s",
+			indentSmall, strings.Join(options, " "))
+		posCompletions := make([]string, 0, len(p.Positionals))
+		for i, pos := range p.Positionals {
+			if pos.Completion == "" {
+				continue
+			}
+			completion := fmt.Sprintf("%d:%s:", i+1, pos.Name)
+			if pos.Type.Kind() == reflect.Slice {
+				completion = fmt.Sprintf("*:%s:", pos.Name)
+			}
+			if pos.Completion == "files" {
+				completion += "_files"
+				posCompletions = append(posCompletions, fmt.Sprintf(`'%s'`, completion))
+				continue
+			}
+			if strings.HasPrefix(pos.Completion, "$(") && strings.HasSuffix(pos.Completion, ")") {
+				cleanComp := strings.ReplaceAll(pos.Completion, "\n", `\n`)
+				completion += fmt.Sprintf(`(%s)`, cleanComp)
+				posCompletions = append(posCompletions, fmt.Sprintf(`"%s"`, completion))
+				continue
+			}
+
+			values := strings.Split(pos.Completion, " ")
+
+			completion += fmt.Sprintf(`_values "%s"`, pos.Name)
+			for _, v := range values {
+				completion += fmt.Sprintf(` "%s"`, v)
+			}
+			posCompletions = append(posCompletions, fmt.Sprintf(`'%s'`, completion))
+		}
+		posAndOpts += strings.Join(posCompletions, " ")
+		return strings.TrimSpace(posAndOpts)
 	}
 
 	commands := make([]string, len(p.Commands))

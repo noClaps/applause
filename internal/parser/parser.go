@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"slices"
@@ -29,7 +30,9 @@ func NewParser(cmdName string, args []string, config reflect.Value) *Parser {
 		Config:     config,
 	}
 
-	p.reflection()
+	if err := p.reflection(); err != nil {
+		log.Println(err)
+	}
 
 	p.generateUsage()
 	p.generateHelp()

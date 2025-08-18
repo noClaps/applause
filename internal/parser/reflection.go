@@ -9,6 +9,9 @@ import (
 
 func (p *Parser) reflection() error {
 	config := p.Config.Elem() // get struct value from pointer
+	if !config.IsValid() {
+		config = reflect.Zero(p.Config.Type().Elem())
+	}
 	configType := config.Type()
 
 	positionalsConf := []positional{}
@@ -51,6 +54,7 @@ func (p *Parser) reflection() error {
 				StructName: field.Name,
 				Name:       fieldName,
 				Type:       field.Type,
+				Completion: field.Tag.Get("completion"),
 				Help:       field.Tag.Get("help"),
 			})
 			continue

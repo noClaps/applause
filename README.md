@@ -163,6 +163,14 @@ Each field should have some struct tags:
   }
   ```
 
+- `completion`: Only applicable when `type` is "arg" or omitted. You can define a completion one of three ways:
+
+  - If you do `completion:"files"`, it will autocomplete to files. This is useful to complete file paths.
+
+  - If you do `completion:"some values here"`, it will autocomplete to "some", "values" and "here". This is useful when you have a fixed set of values you want to autocomplete.
+
+  - If you do `completion:"$(echo 'some command here')"`, it will autocomplete to the output of that command at runtime. This is useful for completions that need to be dynamic.
+
 ### Multiple arguments
 
 If you'd like an argument to take multiple values, you can use a slice. The supported types are:
@@ -423,3 +431,11 @@ You can generate shell completions for your current shell using `--completions`,
 The currently supported shells are:
 
 - ZSH
+
+In addition to the automatically generated completions, you can also provide your own, using the `completions` struct tag on positionals.
+
+- If you do `completion:"files"`, it will autocomplete to files. This is useful to complete file paths.
+
+- If you do `completion:"some values here"`, it will autocomplete to "some", "values" and "here". This is useful when you have a fixed set of values you want to autocomplete.
+
+- If you do `completion:"$(echo 'some command here')"`, it will autocomplete to the output of that command at runtime. This is useful for completions that need to be dynamic.

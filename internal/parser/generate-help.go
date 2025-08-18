@@ -131,7 +131,6 @@ func (p *Parser) generateHelp() {
 			if option.Name == "" {
 				short = fmt.Sprintf("-%s", option.Short)
 				optLen += len(option.Short) + 1 // add `-`
-
 			} else {
 				short = fmt.Sprintf("-%s, ", option.Short)
 				optLen += len(option.Short) + 3 // add `-, `
