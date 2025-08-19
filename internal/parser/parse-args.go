@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/noclaps/applause/internal/utils"
@@ -17,7 +18,7 @@ func (p *Parser) parseOptions() error {
 
 		// done parsing opts, everything after is arguments
 		if arg == "--" {
-			p.Arguments = p.Arguments[i+1:]
+			p.Arguments = slices.Concat(arguments, p.Arguments[i+1:])
 			return nil
 		}
 
