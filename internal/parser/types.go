@@ -21,6 +21,7 @@ type option struct {
 	Short      string        // option short form
 	Default    reflect.Value // option default value
 	Value      string        // option argument name
+	Completion string        // option completion
 }
 
 type command struct {

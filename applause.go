@@ -45,8 +45,8 @@ should have some tags:
     text. For instance, `name:"option" value:"val"` will be displayed as
     `--option <val>` in the help text.
 
-  - `completion`: Only applicable when `type` is "arg" or omitted. You can
-    define a completion one of three ways:
+  - `completion`: Only applicable when `type` is "arg", "option" or omitted.
+    You can define a completion one of three ways:
 
     If you do `completion:"files"`, it will autocomplete to files. This is
     useful to complete file paths.

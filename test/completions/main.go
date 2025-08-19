@@ -19,8 +19,8 @@ type Args struct {
 	Info struct {
 		Package string `help:"The package to get the info for" completion:"$(jq -r 'keys[]' $PKG_HOME/pkg.lock | tr '\n' ' ')"`
 	} `help:"Get the info for a package."`
-	List bool `type:"command" help:"List installed packages"`
-	Init bool `type:"option" help:"Initialise pkg"`
+	List string `type:"option" help:"List installed packages" completion:"installed remote"`
+	Init bool   `type:"option" help:"Initialise pkg"`
 }
 
 func main() {

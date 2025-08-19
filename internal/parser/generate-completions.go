@@ -27,25 +27,45 @@ func (p *Parser) generateZshCompletions(indent int) string {
 
 	options := make([]string, len(p.Options))
 	for i, opt := range p.Options {
-		if opt.Short != "" {
-			switch opt.Type.Kind() {
-			case reflect.Bool:
+		if opt.Type.Kind() == reflect.Bool {
+			if opt.Short != "" {
 				options[i] = fmt.Sprintf(
 					"'(-%[1]s --%[2]s)'{-%[1]s,--%[2]s}'[%s]'",
 					opt.Short, opt.Name, opt.Help)
-			default:
-				options[i] = fmt.Sprintf(
-					"'(-%[1]s --%[2]s)'{-%[1]s+,--%[2]s=}'[%s]:option:'",
-					opt.Short, opt.Name, opt.Help)
+				continue
 			}
-		} else {
-			switch opt.Type.Kind() {
-			case reflect.Bool:
-				options[i] = fmt.Sprintf("'--%s[%s]'", opt.Name, opt.Help)
-			default:
-				options[i] = fmt.Sprintf("'--%s=[%s]:option:'", opt.Name, opt.Help)
-			}
+			options[i] = fmt.Sprintf("'--%s[%s]'", opt.Name, opt.Help)
+			continue
 		}
+
+		completion := fmt.Sprintf("--%s[%s]:%[1]s:", opt.Name, opt.Help)
+		if opt.Short != "" {
+			completion = fmt.Sprintf(
+				"(-%[1]s --%[2]s)'{-%[1]s,--%[2]s}'[%s]:%[2]s:",
+				opt.Short, opt.Name, opt.Help)
+		}
+		if opt.Completion == "" {
+			options[i] = fmt.Sprintf(`'%s'`, completion)
+			continue
+		}
+		if opt.Completion == "files" {
+			completion += "_files"
+			options[i] = fmt.Sprintf(`'%s'`, completion)
+			continue
+		}
+		if strings.HasPrefix(opt.Completion, "$(") && strings.HasSuffix(opt.Completion, ")") {
+			cleanComp := strings.ReplaceAll(opt.Completion, "\n", `\n`)
+			completion += fmt.Sprintf(`(%s)`, cleanComp)
+			options[i] = fmt.Sprintf(`'%s'`, completion)
+			continue
+		}
+
+		values := strings.Split(opt.Completion, " ")
+		completion += fmt.Sprintf(`_values "%s"`, opt.Name)
+		for _, v := range values {
+			completion += fmt.Sprintf(` "%s"`, v)
+		}
+		options[i] = fmt.Sprintf(`'%s'`, completion)
 	}
 	if len(p.Commands) == 0 {
 		posAndOpts := fmt.Sprintf(

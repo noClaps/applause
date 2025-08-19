@@ -89,6 +89,7 @@ func (p *Parser) reflection() error {
 				Help:       field.Tag.Get("help"),
 				Short:      field.Tag.Get("short"),
 				Default:    defaultVal,
+				Completion: field.Tag.Get("completion"),
 			})
 		}
 	}

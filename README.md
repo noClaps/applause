@@ -163,7 +163,7 @@ Each field should have some struct tags:
   }
   ```
 
-- `completion`: Only applicable when `type` is "arg" or omitted. You can define a completion one of three ways:
+- `completion`: Only applicable when `type` is "arg", "option" or omitted. You can define a completion one of three ways:
 
   - If you do `completion:"files"`, it will autocomplete to files. This is useful to complete file paths.
 
@@ -432,7 +432,7 @@ The currently supported shells are:
 
 - ZSH
 
-In addition to the automatically generated completions, you can also provide your own, using the `completions` struct tag on positionals.
+In addition to the automatically generated completions, you can also provide your own, using the `completions` struct tag on positionals and options.
 
 - If you do `completion:"files"`, it will autocomplete to files. This is useful to complete file paths.
 
