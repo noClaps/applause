@@ -165,7 +165,7 @@ Each field should have some struct tags:
 
 - `completion`: Only applicable when `type` is "arg", "option" or omitted. You can define a completion one of three ways:
 
-  - If you do `completion:"files"`, it will autocomplete to files. This is useful to complete file paths.
+  - If you do `completion:"files"`, it will autocomplete to files. This is useful to complete file paths. You can also do `completion:"files[*.json]"` to add a glob to filter files with.
 
   - If you do `completion:"some values here"`, it will autocomplete to "some", "values" and "here". This is useful when you have a fixed set of values you want to autocomplete.
 
@@ -434,7 +434,7 @@ The currently supported shells are:
 
 In addition to the automatically generated completions, you can also provide your own, using the `completions` struct tag on positionals and options.
 
-- If you do `completion:"files"`, it will autocomplete to files. This is useful to complete file paths.
+- If you do `completion:"files"`, it will autocomplete to files. This is useful to complete file paths. You can also do `completion:"files[*.json]"` to add a glob to filter files with.
 
 - If you do `completion:"some values here"`, it will autocomplete to "some", "values" and "here". This is useful when you have a fixed set of values you want to autocomplete.
 

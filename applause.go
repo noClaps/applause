@@ -49,7 +49,8 @@ should have some tags:
     You can define a completion one of three ways:
 
     If you do `completion:"files"`, it will autocomplete to files. This is
-    useful to complete file paths.
+    useful to complete file paths. You can also do `completion:"files[*.json]"`
+    to add a glob to filter files with.
 
     If you do `completion:"some values here"`, it will autocomplete to
     "some", "values" and "here". This is useful when you have a fixed set of

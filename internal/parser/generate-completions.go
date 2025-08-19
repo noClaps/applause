@@ -48,8 +48,12 @@ func (p *Parser) generateZshCompletions(indent int) string {
 			options[i] = fmt.Sprintf(`'%s'`, completion)
 			continue
 		}
-		if opt.Completion == "files" {
+		if opt.Completion == "files" || strings.HasPrefix(opt.Completion, "files[") {
 			completion += "_files"
+			if strings.HasPrefix(opt.Completion, "files[") {
+				guard := opt.Completion[6 : len(opt.Completion)-1]
+				completion += fmt.Sprintf(` -g "%s"`, guard)
+			}
 			options[i] = fmt.Sprintf(`'%s'`, completion)
 			continue
 		}
