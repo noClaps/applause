@@ -3,10 +3,10 @@ package applause
 import (
 	"fmt"
 	"os"
+	"path"
 	"reflect"
 
 	"github.com/noclaps/applause/internal/parser"
-	"github.com/noclaps/applause/internal/utils"
 )
 
 // The help string for the command. This will only contain a value if
@@ -67,7 +67,8 @@ func Parse(args any) error {
 		return fmt.Errorf("Input value should be a pointer to a struct, received: %v", rv.Kind().String())
 	}
 
-	parser := parser.NewParser(utils.GetCmdName(), os.Args[1:], rv)
+	cmdName := path.Base(os.Args[0])
+	parser := parser.NewParser(cmdName, os.Args[1:], rv)
 	Help = parser.Help
 	Usage = parser.Usage
 
