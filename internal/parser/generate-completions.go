@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"slices"
 	"strings"
 )
 
@@ -65,6 +66,9 @@ func (p *Parser) generateZshCompletions(indent int) string {
 		}
 
 		values := strings.Split(opt.Completion, " ")
+		values = slices.DeleteFunc(values, func(v string) bool {
+			return v == ""
+		})
 		completion += fmt.Sprintf(`_values "%s"`, opt.Name)
 		for _, v := range values {
 			completion += fmt.Sprintf(` "%s"`, v)
