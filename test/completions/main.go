@@ -8,7 +8,7 @@ import (
 
 type Args struct {
 	Add struct {
-		Packages []string `help:"Packages to install." completion:" files"`
+		Packages []string `help:"Packages to install." completion:"files[*.json]"`
 		File     string   `type:"option" short:"f" help:"Install from a file" completion:"files[*.{json,jsonc}]"`
 	} `help:"Install packages."`
 	Update *struct {

@@ -88,8 +88,12 @@ func (p *Parser) generateZshCompletions(indent int) string {
 			if pos.Type.Kind() == reflect.Slice {
 				completion = fmt.Sprintf("*:%s:", pos.Name)
 			}
-			if pos.Completion == "files" {
+			if pos.Completion == "files" || strings.HasPrefix(pos.Completion, "files[") {
 				completion += "_files"
+				if strings.HasPrefix(pos.Completion, "files[") {
+					guard := pos.Completion[6 : len(pos.Completion)-1]
+					completion += fmt.Sprintf(` -g "%s"`, guard)
+				}
 				posCompletions = append(posCompletions, fmt.Sprintf(`'%s'`, completion))
 				continue
 			}
