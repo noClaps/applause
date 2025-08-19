@@ -439,3 +439,26 @@ In addition to the automatically generated completions, you can also provide you
 - If you do `completion:"some values here"`, it will autocomplete to "some", "values" and "here". This is useful when you have a fixed set of values you want to autocomplete.
 
 - If you do `completion:"$(echo 'some command here')"`, it will autocomplete to the output of that command at runtime. This is useful for completions that need to be dynamic.
+
+For example:
+
+```go
+package main
+
+import (
+	"github.com/noclaps/applause"
+)
+
+type Args struct {
+	AllFiles string `help:"This will suggest all files" completion:"files"`
+	JsonFiles string `help:"This will only suggest JSON files" completion:"files[*.json]"`
+	SelectValues string `help:"This will suggest 'red', 'green' and 'blue'" completion:"red green blue"`
+	Dynamic string `help:"This will suggest numbers 1 to 10 by running the command" completion:"$(seq -s ' ' 1 10)"`
+	Option string `type:"option" help:"All of the above work on options with arguments too" completion:"yes no"`
+}
+
+func main() {
+	args := Args{}
+	_ = applause.Parse(&args)
+}
+```
