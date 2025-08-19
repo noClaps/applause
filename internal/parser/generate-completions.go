@@ -101,6 +101,9 @@ func (p *Parser) generateZshCompletions(indent int) string {
 			}
 
 			values := strings.Split(pos.Completion, " ")
+			values = slices.DeleteFunc(values, func(v string) bool {
+				return v == ""
+			})
 
 			completion += fmt.Sprintf(`_values "%s"`, pos.Name)
 			for _, v := range values {
